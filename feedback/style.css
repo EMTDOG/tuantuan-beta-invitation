@@ -143,6 +143,9 @@ footer { padding: 1rem 0 1.5rem; border-top: 1px solid var(--line); color: var(-
   .guide-grid { grid-template-columns: 1fr; gap: 1rem; }
 }
 @media (max-width: 28rem) {
+  .envelope { grid-template-columns: 1fr; gap: 0; }
+  .envelope dd + dt { margin-top: .5rem; }
+  .envelope dt { font-size: .875rem; }
   .shell { width: calc(100% - 2rem); }
   .intro { font-size: .94rem; max-width: 65%; }
   .brand { gap: .5rem; }

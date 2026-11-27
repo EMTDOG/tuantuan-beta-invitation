@@ -73,6 +73,7 @@ function readTicket(ticket) {
 
 function discardMail() {
   mail = null;
+  description.hidden = false;
   letter.hidden = true;
   byId('subject').textContent = '';
   byId('body-text').value = '';
@@ -193,6 +194,7 @@ feedback.addEventListener('submit', event => {
   // Keep the ticket and answers out of URLs, including links to the player's mail app.
   byId('compose').href = 'mailto:' + byId('recipient').textContent + '?subject=' + encodeURIComponent(subject);
   feedback.hidden = true;
+  description.hidden = true;
   letter.hidden = false;
   message();
   byId('letter-title').focus();
