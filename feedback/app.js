@@ -34,6 +34,25 @@ function base64url(bytes) {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+const decode64 = value => Uint8Array.from(atob(value.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+const utf8 = new TextEncoder();
+
+async function sealAnswers(invite, answers) {
+  const slot = new Uint8Array(await crypto.subtle.digest('SHA-256', utf8.encode(invite.grant)));
+  const aad = utf8.encode(Array.from(slot, b => b.toString(16).padStart(2,'0')).join(''));
+  const params = {name:'ECDH', namedCurve:'P-256'};
+  const recipient = await crypto.subtle.importKey('raw', decode64(invite.key), params, false, []);
+  const ephemeral = await crypto.subtle.generateKey(params, true, ['deriveBits']);
+  const shared = await crypto.subtle.deriveBits({name:'ECDH',public:recipient},ephemeral.privateKey,256);
+  const material = await crypto.subtle.importKey('raw', shared, 'HKDF', false, ['deriveKey']);
+  const aes = await crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt:slot,info:utf8.encode('tuantuan-feedback-envelope-v1')},
+    material, {name:'AES-GCM',length:256}, false, ['encrypt']);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:aad},aes,utf8.encode(JSON.stringify(answers)));
+  const epk = await crypto.subtle.exportKey('raw',ephemeral.publicKey);
+  return {v:1,epk:base64url(new Uint8Array(epk)),iv:base64url(iv),ct:base64url(new Uint8Array(ct))};
+}
+
 function requireToday(date) {
   const today = todayInBeijing();
   if (date < today) throw new Error('这张邀请码已过期，请向邀请人领取今天的码。');
@@ -55,7 +74,7 @@ async function readTicket(ticket) {
   }
   const id = data?.id;
   const hasId = typeof id === 'string' ? id.trim().length > 0 : Number.isSafeInteger(id);
-  if (data?.v !== 1 || !hasId) {
+  if (![1,2].includes(data?.v) || !hasId) {
     throw new Error('邀请码版本或玩家编号有误，请联系邀请人。');
   }
   if (!Number.isInteger(data.day) || data.day < 1 || data.day > 3) {
@@ -69,17 +88,21 @@ async function readTicket(ticket) {
     throw new Error('需由团队核对满 30 分钟后签发当日码。遇到 BUG 或急事可直接私信邀请人。');
   }
   requireToday(data.date);
-  if (!/^https:\/\/[a-z0-9]+(?:-[a-z0-9]+)*\.trycloudflare\.com$/.test(data.inbox) ||
-      !/^[A-Za-z0-9_-]{86}$/.test(data.proof)) {
-    throw new Error('请向邀请人领取新版异地填写链接。');
+  const cloud = data.v === 2;
+  const validRoute = cloud
+    ? /^https:\/\/[a-z0-9-]+\.[a-z0-9-]+\.workers\.dev$/.test(data.inbox) &&
+      /^[0-9a-f]{64}$/.test(data.grant) && /^[A-Za-z0-9_-]{87}$/.test(data.key)
+    : /^https:\/\/[a-z0-9]+(?:-[a-z0-9]+)*\.trycloudflare\.com$/.test(data.inbox);
+  if (!validRoute || !/^[A-Za-z0-9_-]{86}$/.test(data.proof)) {
+    throw new Error('请向邀请人重新领取个人链接。');
   }
-  const decode = value => Uint8Array.from(atob(value.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-  const signer = await crypto.subtle.importKey('raw', decode('BEqt-HIiZE6aZF8S0j_CYkaY2bqkquMGfrDnFqiExYEzrUAPKe75P4zz1iWh9dsQfSWNa8ThHuDSzgPCF2OSkCc'),
+  const signer = await crypto.subtle.importKey('raw', decode64('BEqt-HIiZE6aZF8S0j_CYkaY2bqkquMGfrDnFqiExYEzrUAPKe75P4zz1iWh9dsQfSWNa8ThHuDSzgPCF2OSkCc'),
     { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+  const signed = cloud ? [data.v,data.id,data.day,data.date,data.minutes,data.inbox,data.key,data.grant].join('\n') : data.inbox;
   const valid = await crypto.subtle.verify({name:'ECDSA', hash:'SHA-256'}, signer,
-    decode(data.proof), new TextEncoder().encode(data.inbox));
+    decode64(data.proof), utf8.encode(signed));
   if (!valid) throw new Error('收件地址未通过验证，请重新复制邀请人发来的链接。');
-  return { ticket, inbox:data.inbox, id:data.id, day: data.day, date: data.date, minutes: data.minutes };
+  return { ticket, cloud, grant:data.grant, key:data.key, inbox:data.inbox, id:data.id, day: data.day, date: data.date, minutes: data.minutes };
 }
 
 function showReceipt() {
@@ -88,6 +111,9 @@ function showReceipt() {
   fields.replaceChildren();
   description.hidden = feedback.hidden = true;
   letter.hidden = false;
+  byId('receipt-detail').textContent = invitation.cloud
+    ? '已安全收件。你的回答已加密保存，团队电脑上线后会自动取回。可以关闭本页了。'
+    : '你的五个回答已存入团队的电脑，可以关闭本页了。';
   message('');
   byId('letter-title').focus();
 }
@@ -105,7 +131,7 @@ async function post(inbox, route, payload) {
     return result;
   } catch (err) {
     if (err instanceof TypeError || err instanceof SyntaxError || err.name === 'AbortError')
-      throw new Error('暂时联系不上团队的电脑。请保留本页，稍后重试；如果邀请人重发了链接，可将它粘贴到邀请码栏继续。');
+      throw new Error('暂时联系不上收件服务。请保留本页，稍后重试；如果邀请人重发了链接，可将它粘贴到邀请码栏继续。');
     throw err;
   } finally { clearTimeout(timer); }
 }
@@ -180,7 +206,7 @@ async function openTicket(ticket) {
     const next = await readTicket(ticket);
     const sameDay = invitation && next.day === invitation.day && next.date === invitation.date && next.id === invitation.id;
     if (invitation?.ticket === ticket || (!sameDay && !mayReplaceDraft())) return;
-    const state = await post(next.inbox, 'status', {ticket});
+    const state = await post(next.inbox, 'status', next.cloud ? {grant:next.grant} : {ticket});
     if (typeof state.submitted !== 'boolean') throw new Error('未能核实邀请码，请重试。');
     if (sameDay && !state.submitted) {
       invitation = next;
@@ -235,9 +261,20 @@ feedback.addEventListener('submit', async event => {
   sending = true;
   inputs.forEach(field => field.readOnly = true);
   byId('change').disabled = byId('generate').disabled = true;
-  message('正在提交到团队的电脑…');
+  message(current.cloud ? '正在加密并提交…' : '正在提交到团队的电脑…');
   try {
-    const result = await post(current.inbox, 'submit', {ticket:current.ticket, answers});
+    let payload;
+    if (current.cloud) {
+      const draft = JSON.stringify(answers);
+      if (current.lastDraft !== draft) {
+        current.envelope = await sealAnswers(current, answers);
+        current.lastDraft = draft;
+      }
+      payload = {grant:current.grant, envelope:current.envelope};
+    } else {
+      payload = {ticket:current.ticket, answers};
+    }
+    const result = await post(current.inbox, 'submit', payload);
     if (result.saved !== true) throw new Error('尚未确认保存，请重试。');
     if (invitation === current) showReceipt();
   } catch (err) {

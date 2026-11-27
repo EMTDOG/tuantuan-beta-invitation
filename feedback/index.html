@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://*.trycloudflare.com; script-src 'self'; style-src 'self'; form-action 'none'; object-src 'none'; base-uri 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://*.trycloudflare.com https://*.workers.dev; script-src 'self'; style-src 'self'; form-action 'none'; object-src 'none'; base-uri 'none'">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#f7f4e9">
   <title>团团的三日手记 · 心度内测反馈</title>
   <link rel="icon" href="./art/meadow.png">
   <link rel="stylesheet" href="./style.css">
   <script src="./questions.js" defer></script>
-  <script src="./app.js" defer></script>
+  <script src="./app.js?v=cloud-inbox-2" defer></script>
 </head>
 <body>
   <a class="skip" href="#entry">跳到反馈入口</a>
@@ -55,7 +55,7 @@
           </form>
           <section id="letter" aria-labelledby="letter-title" hidden>
             <h3 id="letter-title" tabindex="-1">今天的反馈已收到</h3>
-            <p>入库成功。你的五个回答已存入团队的电脑，可以关闭本页了。</p>
+            <p id="receipt-detail">入库成功。你的五个回答已存入团队的电脑，可以关闭本页了。</p>
           </section>
           <button id="change" type="button" class="text-button">更换邀请码</button>
         </div>
@@ -67,7 +67,7 @@
       <h2 id="guide-title">填写说明</h2>
       <div class="guide-grid">
         <div><h3>每天一张邀请码</h3><p>团队核对当天游戏数据，满 30 分钟后签发当日码。三天各有五道题，请在北京时间当天填写。</p></div>
-        <div><h3>从手机提交</h3><p>答完五题后点提交。看到“今天的反馈已收到”，就表示团队的电脑已保存你的回答。提交通过 Cloudflare 的加密连接转发。</p></div>
+        <div><h3>从手机提交</h3><p>答完五题后点提交。看到“今天的反馈已收到”，就可以关闭页面。使用云收件邀请时，回答会先在手机上加密，由 Cloudflare 暂存，团队电脑上线后取回。</p></div>
         <div><h3>急事随时私信</h3><p>遇到 BUG、感到不适或有急事，可直接私信邀请你的工作人员，无需等满时长。</p></div>
       </div>
     </section>
