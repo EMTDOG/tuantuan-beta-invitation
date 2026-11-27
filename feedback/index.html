@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="connect-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f7f4e9">
+  <title>团团的三日手记 · 心度内测反馈</title>
+  <link rel="icon" href="./art/meadow.png">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./questions.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#entry">跳到反馈入口</a>
+  <header class="mast shell">
+    <div class="brand"><span class="logo"><img src="./art/mind-logo.jpg" alt="心度 Mind°"></span><span>团团内测</span></div>
+    <a href="#guide" class="guide-link">填写说明</a>
+  </header>
+  <main class="shell">
+    <div class="spread">
+      <section class="cover" aria-labelledby="title">
+        <p class="kicker"><span></span> 玩家反馈手记</p>
+        <h1 id="title">团团的<span>三日手记</span></h1>
+        <p class="intro">今天和团团相处得怎么样？<br>把记得的瞬间写给团团吧。</p>
+        <div class="landscape" role="img" aria-label="戴着紫色披风的团团坐在开满雏菊的草坡上">
+          <i class="sun"></i><i class="cloud"></i><i class="ridge far"></i><i class="ridge near"></i>
+          <img class="flowers" src="./art/daisy.webp" alt="">
+          <img class="mascot" src="./art/tuantuan.webp" alt="">
+        </div>
+      </section>
+      <section id="entry" class="sheet" aria-labelledby="entry-title" tabindex="-1">
+        <div class="letterhead">
+          <span class="recipient">致团团</span>
+          <span class="postage" aria-hidden="true"><img src="./art/meadow.png" alt=""></span>
+        </div>
+        <h2 id="entry-title" tabindex="-1">打开今日手记</h2>
+        <p id="description" class="description">用团队今天发给你的邀请码打开手记。写完五个回答后，用自己的邮箱寄给心度。</p>
+        <form id="login" autocomplete="off">
+          <label for="code">今日邀请码</label>
+          <input id="code" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="粘贴今天收到的邀请码" required>
+          <button id="open" class="primary" type="submit" disabled>查看今日手记</button>
+        </form>
+        <div id="session" hidden>
+          <ol class="days" aria-label="三天反馈日程">
+            <li>第一天</li><li>第二天</li><li>第三天</li>
+          </ol>
+          <p id="facts" class="facts"></p>
+          <form id="feedback" autocomplete="off" hidden>
+            <div id="fields"></div>
+            <p class="draft-note">写下游戏体验就好，请略去姓名、联系方式和私聊原文。草稿只留在当前页面，刷新或关闭会清空。</p>
+            <button id="generate" class="primary" type="submit">生成反馈邮件</button>
+          </form>
+          <section id="letter" aria-labelledby="letter-title" hidden>
+            <h3 id="letter-title" tabindex="-1">邮件草稿已备好</h3>
+            <dl class="envelope">
+              <dt>收件人</dt><dd id="recipient">2654362795@qq.com</dd>
+              <dt>主题</dt><dd id="subject"></dd>
+            </dl>
+            <p>复制完整正文，或下载反馈文件作为附件。两种方式任选一种即可。</p>
+            <div class="exports">
+              <button id="copy" class="secondary" type="button">复制完整邮件正文</button>
+              <button id="download" class="secondary" type="button">下载反馈 .txt</button>
+            </div>
+            <details id="manual">
+              <summary>手动选择和复制正文</summary>
+              <textarea id="body-text" aria-label="完整邮件正文" readonly autocomplete="off" spellcheck="false"></textarea>
+            </details>
+            <p>打开邮箱后，粘贴正文或添加刚下载的附件，再点「发送」。也可以在常用邮箱按上面的地址和主题新建邮件。</p>
+            <a id="compose" class="primary compose" target="_blank" rel="noopener noreferrer">打开邮箱写信</a>
+            <button id="edit" class="text-button" type="button">返回修改回答</button>
+          </section>
+          <button id="change" type="button" class="text-button">更换邀请码</button>
+        </div>
+        <p id="notice" role="status" aria-live="polite" aria-atomic="true"></p>
+        <noscript><p>请启用 JavaScript 以打开手记并在本机生成邮件。</p></noscript>
+      </section>
+    </div>
+    <section id="guide" class="guide" aria-labelledby="guide-title" tabindex="-1">
+      <h2 id="guide-title">填写说明</h2>
+      <div class="guide-grid">
+        <div><h3>每天一张邀请码</h3><p>团队核对当天游戏数据，满 30 分钟后签发当日码。三天各有五道题，请在北京时间当天填写。</p></div>
+        <div><h3>用自己的邮箱寄出</h3><p>页面在本机生成邮件，回答不会传到 GitHub。心度收到邮件后，会在本机核验邀请码、检查重复反馈并登记。</p></div>
+        <div><h3>急事随时私信</h3><p>遇到 BUG、感到不适或有急事，可直接私信邀请你的工作人员，无需等满时长。</p></div>
+      </div>
+    </section>
+  </main>
+  <footer class="shell"><span>心度 · 团团内测</span><span>玩家反馈手记</span></footer>
+</body>
+</html>
