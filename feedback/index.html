@@ -4,12 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; script-src 'none'; style-src 'self'; form-action 'none'; object-src 'none'; base-uri 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://*.trycloudflare.com; script-src 'self'; style-src 'self'; form-action 'none'; object-src 'none'; base-uri 'none'">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#f7f4e9">
   <title>团团的三日手记 · 心度内测反馈</title>
   <link rel="icon" href="./art/meadow.png">
   <link rel="stylesheet" href="./style.css">
+  <script src="./questions.js" defer></script>
+  <script src="./app.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#entry">跳到反馈入口</a>
@@ -29,17 +31,43 @@
           <img class="mascot" src="./art/tuantuan.webp" alt="">
         </div>
       </section>
-      <section id="entry" class="sheet">
-        <div class="letterhead"><span class="recipient">致团团</span><span class="postage" aria-hidden="true"><img src="./art/meadow.png" alt=""></span></div>
-        <h2>请打开今天的局域网邀请链接</h2>
-        <p class="description">先连接与收件电脑相同的局域网。当天体验满 30 分钟后，邀请人会把个人链接发给你。打开链接，答完五题点提交，看到“今天的反馈已收到”即可。</p>
+      <section id="entry" class="sheet" aria-labelledby="entry-title" tabindex="-1">
+        <div class="letterhead">
+          <span class="recipient">致团团</span>
+          <span class="postage" aria-hidden="true"><img src="./art/meadow.png" alt=""></span>
+        </div>
+        <h2 id="entry-title" tabindex="-1">打开今日手记</h2>
+        <p id="description" class="description">每天体验满 30 分钟后，邀请人会把当天的个人链接发给你。手机用流量或 Wi-Fi 都能填写。</p>
+        <form id="login" autocomplete="off">
+          <label for="code">今日邀请码</label>
+          <input id="code" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="粘贴今天收到的个人链接或邀请码" required>
+          <button id="open" class="primary" type="submit" disabled>查看今日手记</button>
+        </form>
+        <div id="session" hidden>
+          <ol class="days" aria-label="三天反馈日程">
+            <li>第一天</li><li>第二天</li><li>第三天</li>
+          </ol>
+          <p id="facts" class="facts"></p>
+          <form id="feedback" autocomplete="off" hidden>
+            <div id="fields"></div>
+            <p class="draft-note">写下游戏体验就好，请略去姓名、联系方式和私聊原文。草稿只留在当前页面，刷新或关闭会清空。</p>
+            <button id="generate" class="primary" type="submit">提交今日反馈</button>
+          </form>
+          <section id="letter" aria-labelledby="letter-title" hidden>
+            <h3 id="letter-title" tabindex="-1">今天的反馈已收到</h3>
+            <p>入库成功。你的五个回答已存入团队的电脑，可以关闭本页了。</p>
+          </section>
+          <button id="change" type="button" class="text-button">更换邀请码</button>
+        </div>
+        <p id="notice" role="status" aria-live="polite" aria-atomic="true"></p>
+        <noscript><p>请启用 JavaScript 以打开手记并提交反馈。</p></noscript>
       </section>
     </div>
     <section id="guide" class="guide" aria-labelledby="guide-title" tabindex="-1">
       <h2 id="guide-title">填写说明</h2>
       <div class="guide-grid">
         <div><h3>每天一张邀请码</h3><p>团队核对当天游戏数据，满 30 分钟后签发当日码。三天各有五道题，请在北京时间当天填写。</p></div>
-        <div><h3>在现场直接提交</h3><p>和收件电脑连接同一局域网，答完后点提交。看到“今天的反馈已收到”，就表示团队的电脑已保存你的回答。</p></div>
+        <div><h3>从手机提交</h3><p>答完五题后点提交。看到“今天的反馈已收到”，就表示团队的电脑已保存你的回答。提交通过 Cloudflare 的加密连接转发。</p></div>
         <div><h3>急事随时私信</h3><p>遇到 BUG、感到不适或有急事，可直接私信邀请你的工作人员，无需等满时长。</p></div>
       </div>
     </section>
